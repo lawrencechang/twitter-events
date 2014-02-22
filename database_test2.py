@@ -1,4 +1,5 @@
 from Database.TwitterEventsAPI import TweetsDb;
+import sqlite3 as lite;
 
 db  = TweetsDb();
 
@@ -7,16 +8,24 @@ db  = TweetsDb();
 db.connect('hello.db');
 print 'Connected to hello.db';
 
-print 'Adding tweet 1 of 5';
-db.addTweet(382939,'broncos','seattle seahawks',-1,-1);
-print 'Adding tweet 2 of 5';
-db.addTweet(382939,'broncos','seattle seahawks',-1,-1);
-print 'Adding tweet 3 of 5';
-db.addTweet(382939,'broncos','seattle seahawks',-1,-1);
-print 'Adding tweet 4 of 5';
-db.addTweet(382939,'broncos','seattle seahawks',-1,-1);
-print 'Adding tweet 5 of 5';
-db.addTweet(382939,'broncos','seattle seahawks',-1,-1);
+for i in range(0,5):
+    print 'Adding tweet '+str(i)+' of 5';
+    db.addTweet(400000+i,'broncos','seattle seahawks',-1,-1);
 
+# look at the db so far
+print 'looking at hello.db';
+con2 = lite.connect('hello.db');
+with con2:
+    print 'picking all tweets';
+    cur = con2.cursor();
+    cur.execute('select * from Tweets');
+    rows = cur.fetchall();
+    for row in rows:
+        print row;
 
-
+    print 'picking row id 13';
+    cur.execute('select * from Tweets where rowid = 13');
+    rows = cur.fetchall();
+    for row in rows:
+        print row;
+    

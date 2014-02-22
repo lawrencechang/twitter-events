@@ -59,3 +59,13 @@ class TweetsDb:
                        ""+str(tweetId)+',\''+team1+'\',\''+team2+'\','+str(score1)+','+str(score2)+")");
             print command;
             cur.execute(command);
+
+    def getId(self,tweetId):
+        # Enforce tweetId is an integer
+        if (type(tweetId) is not int):
+            print "Tweet Id must be of integer type";
+            return;
+        pass;
+
+    def getTeam(self,teamName):
+        pass;
