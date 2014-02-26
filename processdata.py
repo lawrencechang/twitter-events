@@ -7,8 +7,6 @@ APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
 OAUTH_TOKEN = ''
 OAUTH_TOKEN_SECRET = ''
 
-
-
 KEYWORDS = []
 NUMERAL = ['$']
 NOUN    = ['^','N','@','#','~']
@@ -55,21 +53,23 @@ def loadKeywords():
     log_file.close()
     
 def initialStatesRead():
-    with open('/home/tomerwei/UCLA_assignments/CS263A/ark-tweet-nlp-0.3.2/supersprlog.csv', 'rb') as csvfile:
-        spamreader = csv.reader(csvfile, delimiter='\t')
-        allStates       = []            
-        for row in spamreader:
-            st = []
-            if False and len(row) == 0:
-                print row            
-            if len(row) > 1:
-                str = row[0]
-                typ = row[1]                            
+    with open('/home/tomerwei/UCLA_assignments/CS263A/ark-tweet-nlp-0.3.2/prettyparse.txt', 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\n')
+        TWEET_ID_COUNTER = 0        
+        for r in spamreader:
+            row = r[0].split('\t')
+            tokens      = row[0].split(' ')            
+            tokensTypes = row[1].split(' ')
+            tweet       = row[2]            
+            i = 0
+            for typ in tokensTypes:                
                 if typ in NOUN:                    
-                    if str.lower() in KEYWORDS:
-                        print str, typ                        
-    print KEYWORDS
-    print NOUN
+                    if tokens[i].lower() in KEYWORDS:
+                        print tokens[i], tweet, TWEET_ID_COUNTER
+                i+=1                                                                      
+            
+            TWEET_ID_COUNTER+=1
+                
             #allStates.append( st )            
         #print allStates
         #stWithOtherAnimatsSensor = statesNumberOfAnimatsSensorAdd(allStates)
