@@ -19,7 +19,6 @@ class TweetsDb:
 
         with con:
             cur = con.cursor();
-            #cur.execute("create table Tweets(Id INT, tweetId INT, Team1 TEXT, Team2 TEXT, Score1 INT, Score2 INT)");
             cur.execute("create table Tweets(tweetId INT, Team1 TEXT, Team2 TEXT, Score1 INT, Score2 INT)");
 
     # Delete the Tweets table
@@ -65,7 +64,30 @@ class TweetsDb:
         if (type(tweetId) is not int):
             print "Tweet Id must be of integer type";
             return;
+        con = self.connect(self.currentDb);
+        with con:
+            cur= con.cursor();
+            command = ("select * from Tweets where tweetId="+str(tweetId));
+            print command;
+            cur.execute(command);
+
+            return cur.fetchall();
         pass;
 
     def getTeam(self,teamName):
+        # Enfore teamName is a string
+        if (type(teamName) is not str):
+            print "Team name must be of string type";
+            return;
+        con = self.connect(self.currentDb);
+        with con:
+            cur = con.cursor();
+            command = ("select * from Tweets where "+
+                       "Team1=\'"+teamName+"\'"+
+                       " or "+
+                       "Team2=\'"+teamName+"\'");
+            print command;
+            cur.execute(command);
+
+            return cur.fetchall();
         pass;
