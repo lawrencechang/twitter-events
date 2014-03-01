@@ -1,5 +1,7 @@
 import csv
+import collections
 from twython import Twython
+from sets import Set
 from twython.exceptions import TwythonError
 
 APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
@@ -11,20 +13,85 @@ KEYWORDS = []
 NUMERAL = ['$']
 NOUN    = ['^','N','@','#','~']
 
+USERS = Set([])
+USERSDATA = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/data/'
 
+
+
+def wordCounter(inputFile):
+    # Create counter object, initialize to nothing
+    mycounter = collections.Counter();    
+    # In a loop, read each line
+    # Update counter with new line
+    with open(inputFile,'r') as file:
+        for line in file:
+            mycounter.update(line.split());
+    file.closed    
+    # Print counter results
+    return mycounter.most_common(10);
+
+from os import listdir
+from os.path import isfile, join
+def processUsers(mypath):
+    onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]    
+    outFileName = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/results.txt'
+    outFile = open(outFileName, 'w')
+    for f in onlyfiles:
+        filePath = USERSDATA + f
+        result = wordCounter(filePath)
+        print f, result
+        print>> outFile, f,result
+    outFile.close()        
+
+def saveTweets(listOfTweets,outputFile):
+    if outputFile:    
+        outFile = open(outputFile, 'w')
+        for tweet in listOfTweets:
+            if outputFile:
+                print>> outFile, tweet['text']    
+        outFile.close()
+    else:
+        for tweet in listOfTweets:
+            username = tweet['user']['screen_name']
+            tweet    = tweet['text']            
+            print username,tweet
+            USERS.add(username)
+    
+    
+
+def twitterExtractUserTimeline(name):    
+    try:
+        twitter = Twython(APP_KEY, APP_SECRET)
+        user_timeline = twitter.get_user_timeline(screen_name=name, count=200 )
+        outputFilePath = USERSDATA + name
+        print    outputFilePath              
+        saveTweets(user_timeline,outputFilePath)
+#        for tweet in user_timeline:
+#            print tweet["text"]
+    except TwythonError as e:
+        print e
+
+
+def findUserTweets():
+    twitterCheck("lakers",None)
+    
+    for u in USERS:
+        twitterExtractUserTimeline(u)
+
+    
 def twitterCheck( query, outputFile ):
     twitter = Twython(APP_KEY, APP_SECRET)
     popularTweets =  twitter.search(q=query,  count=100, lang = 'en', include_entities= False)
-    listOfTweets  =  popularTweets["statuses"]
-    
+    listOfTweets  =  popularTweets["statuses"]    
     print "Fetched ",len(listOfTweets)," tweets."
-    for tweet in listOfTweets:
-        print>> outputFile, tweet["text"]                               
+    saveTweets(listOfTweets,None)
 
+            
 def twitterSearch():
     twitter = Twython( APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)        
     twitter.search(q='twitter')
     twitter.search(q='twitter', result_type='popular')
+
     
 def extractKeywords():
     file_str = open( '/home/tomerwei/Downloads/keywords.txt').read()
@@ -51,6 +118,7 @@ def loadKeywords():
         if line:
             KEYWORDS.append(line.lower())            
     log_file.close()
+
     
 def initialStatesRead():
     with open('/home/tomerwei/UCLA_assignments/CS263A/ark-tweet-nlp-0.3.2/prettyparse.txt', 'rb') as csvfile:
@@ -66,25 +134,18 @@ def initialStatesRead():
                 if typ in NOUN:                    
                     if tokens[i].lower() in KEYWORDS:
                         print tokens[i], tweet, TWEET_ID_COUNTER
-                i+=1                                                                      
-            
-            TWEET_ID_COUNTER+=1
+                i+=1                                                                                  
+            TWEET_ID_COUNTER+=1        
+
                 
-            #allStates.append( st )            
-        #print allStates
-        #stWithOtherAnimatsSensor = statesNumberOfAnimatsSensorAdd(allStates)
-        #for s in stWithOtherAnimatsSensor:
-        #    print s
-        #harvestedFoodStates = findAllFoodHarvestedState(allStates)
-    #return allStates,harvestedFoodStates    
-
-
 #Main Function
 if __name__ == '__main__':
     #print 'hello world'
     #extractKeywords()
-    loadKeywords()
+    #loadKeywords()
     print KEYWORDS
-    initialStatesRead()
-    
+    #findUserTweets()
+    processUsers(USERSDATA)
+    #twitterExtractUserTimeline('MileyCyrus')
+    #initialStatesRead()
     #twitterCheck('UCLA')
