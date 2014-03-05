@@ -15,6 +15,7 @@ NOUN    = ['^','N','@','#','~']
 
 USERS = Set([])
 USERSDATA = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/data/'
+TWEETNOUNS = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tweetNouns/'
 
 
 
@@ -56,6 +57,14 @@ def saveTweets(listOfTweets,outputFile):
             tweet    = tweet['text']            
             print username,tweet
             USERS.add(username)
+
+def saveParsedTweets(nounList,outputFile):
+    if outputFile:    
+        outFile = open(outputFile, 'w')
+        for tweet in nounList:
+            if outputFile:
+                print>> outFile, tweet['text']    
+        outFile.close()
     
     
 
@@ -77,6 +86,15 @@ def findUserTweets():
     
     for u in USERS:
         twitterExtractUserTimeline(u)
+
+
+def findTweetsByTime( query, time, outputFile ):
+    twitter = Twython(APP_KEY, APP_SECRET)
+    popularTweets =  twitter.search(q=query,  count=100, lang = 'en', 
+                                    until = time, result_type = 'recent', include_entities= False)
+    listOfTweets  =  popularTweets["statuses"]    
+    print "Fetched ",len(listOfTweets)," tweets."
+    saveTweets(listOfTweets,None)
 
     
 def twitterCheck( query, outputFile ):
@@ -121,31 +139,80 @@ def loadKeywords():
 
     
 def initialStatesRead():
-    with open('/home/tomerwei/UCLA_assignments/CS263A/ark-tweet-nlp-0.3.2/prettyparse.txt', 'rb') as csvfile:
+    with open('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/adidas_227.out', 'rb') as csvfile:
         spamreader = csv.reader(csvfile, delimiter='\n')
         TWEET_ID_COUNTER = 0        
-        for r in spamreader:
+        for r in spamreader:            
+            row = r[0].split('\t')
+            tokens      = row[0].split(' ')            
+            tokensTypes = row[1].split(' ')
+            tweet       = row[2]            
+            i = 0            
+            for typ in tokensTypes:                            
+                if typ in NOUN:                    
+                    if tokens[i].lower() in KEYWORDS:
+                        print tokens[i], "|",tweet, TWEET_ID_COUNTER                                                    
+                i+=1                                        
+            TWEET_ID_COUNTER+=1    
+            
+            
+def nounFinder(file):
+    tweet_nouns = []
+    with open(file, 'rb') as csvfile:
+        spamreader = csv.reader(csvfile, delimiter='\n')
+        TWEET_ID_COUNTER = 0        
+        for r in spamreader:            
             row = r[0].split('\t')
             tokens      = row[0].split(' ')            
             tokensTypes = row[1].split(' ')
             tweet       = row[2]            
             i = 0
-            for typ in tokensTypes:                
+
+            for typ in tokensTypes:                            
                 if typ in NOUN:                    
-                    if tokens[i].lower() in KEYWORDS:
-                        print tokens[i], tweet, TWEET_ID_COUNTER
-                i+=1                                                                                  
-            TWEET_ID_COUNTER+=1        
+                    tweet_nouns.append(tokens[i])                
+                i+=1                                                                                
+            TWEET_ID_COUNTER+=1
+    return tweet_nouns                 
+
+
+def refCountGet(mypath):
+    onlyfiles = [ f for f in listdir(mypath) if isfile(join(mypath,f)) ]            
+    res = []
+    for f in onlyfiles:
+        nouns = nounFinder(mypath + f)
+        res += nouns        
+
+    for r in res:
+        print r
+            
+    mycounter = collections.Counter();    
+    mycounter.update(nouns);
+    print mycounter.most_common(17);
+
+    #print res
+    if 0:
+        nouns = nounFinder('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/CoachKSnyd.out')
+        mycounter = collections.Counter();    
+        mycounter.update(nouns);
+        print mycounter.most_common(17);
+    
 
                 
 #Main Function
 if __name__ == '__main__':
+    
+    
     #print 'hello world'
     #extractKeywords()
     #loadKeywords()
-    print KEYWORDS
+    #print KEYWORDS
     #findUserTweets()
-    processUsers(USERSDATA)
+    #processUsers(USERSDATA)
     #twitterExtractUserTimeline('MileyCyrus')
     #initialStatesRead()
-    #twitterCheck('UCLA')
+    #twitterCheck('UCLA', None)
+    findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
+    
+    #refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')
+    
