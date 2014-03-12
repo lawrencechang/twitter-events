@@ -197,6 +197,24 @@ def refCountGet(mypath):
         mycounter.update(nouns);
         print mycounter.most_common(17);
     
+def findFollowersOf(user):
+    twitter = Twython(APP_KEY, APP_SECRET);
+    followerList = twitter.cursor(
+        twitter.get_followers_list,
+        screen_name=user,cursor=5,count=200,skip_status='true',include_user_entities='true');  
+
+    # Proper cursoring
+    print 'Proper cursoring'
+    mycursor = -1;
+    for i in range(0,5):
+        f = twitter.get_followers_list(
+            screen_name=user,cursor=mycursor,count=200);
+        
+        for follower in f['users']:
+            print (follower['screen_name'],' ',follower['followers_count']);
+        mycursor = f['next_cursor'];
+
+    return followerList;
 
                 
 #Main Function
@@ -212,7 +230,8 @@ if __name__ == '__main__':
     #twitterExtractUserTimeline('MileyCyrus')
     #initialStatesRead()
     #twitterCheck('UCLA', None)
-    findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
+    #findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
     
     #refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')
     
+    followers = findFollowersOf('lakers');
