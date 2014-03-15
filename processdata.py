@@ -199,23 +199,25 @@ def refCountGet(mypath):
     
 def findFollowersOf(user):
     twitter = Twython(APP_KEY, APP_SECRET);
-    followerList = twitter.cursor(
-        twitter.get_followers_list,
-        screen_name=user,cursor=5,count=200,skip_status='true',include_user_entities='true');  
 
+    followerList = [];
+    
     # Proper cursoring
     print 'Proper cursoring'
     mycursor = -1;
     for i in range(0,5):
+        print 'Cursor page '+str(i);
         f = twitter.get_followers_list(
-            screen_name=user,cursor=mycursor,count=200);
+            screen_name=user,cursor=mycursor,count=20,skip_status='true',include_user_entities='true');
         
         for follower in f['users']:
-            print (follower['screen_name'],' ',follower['followers_count']);
+            followerList.append((follower['screen_name'],follower['followers_count']));
         mycursor = f['next_cursor'];
 
-    return followerList;
-
+    print 'Got list, sorting'
+    return sorted(followerList,key=lambda followers:followers[1],reverse=True);
+        
+    # f['users'][0]['screen_name']
                 
 #Main Function
 if __name__ == '__main__':
@@ -235,3 +237,4 @@ if __name__ == '__main__':
     #refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')
     
     followers = findFollowersOf('lakers');
+    
