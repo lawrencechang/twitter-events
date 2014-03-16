@@ -212,17 +212,32 @@ def findFollowersOf(user):
 
 from CMUTweetTagger import runtagger_parse
 def findLastTweetsOfFollower(followerName):
+    twitter = Twython(APP_KEY, APP_SECRET)    
+    nouns  = []
+    tweets = []
+    i      = 0
     try:
-        twitter = Twython(APP_KEY, APP_SECRET)
-        user_timeline = twitter.get_user_timeline(screen_name=followerName, count=1000 )        
-        tweets = []
-        nouns  = []
-        print len(user_timeline)
+        user_timeline = twitter.get_user_timeline(screen_name=followerName, count=200 )
+        low_id        = user_timeline[0]['id']        
+        print len(user_timeline)        
         for tweet in user_timeline:            
-            tweet    = tweet['text']                        
-            tweets.append(tweet)                
-        tokenizedTweets = runtagger_parse(tweets)
-        i=0
+            cur_id  = tweet['id']
+            if low_id > cur_id:
+                low_id = cur_id                                                    
+            tweet   = tweet['text']                                
+            tweets.append(tweet)                                    
+                                        
+        for i in range (0,3):
+            user_timeline = twitter.get_user_timeline(screen_name=followerName, max_id= low_id, count=200 )                    
+            print len(user_timeline)            
+            for tweet in user_timeline:                
+                cur_id  = tweet['id']
+                if low_id > cur_id:
+                    low_id = cur_id                                                    
+                tweet   = tweet['text']                                    
+                tweets.append(tweet)                                                
+                                    
+        tokenizedTweets = runtagger_parse(tweets)            
         for tupl in tokenizedTweets:
             #print '----------'
             for token in tupl:
@@ -230,11 +245,11 @@ def findLastTweetsOfFollower(followerName):
                 #print tokenList[0], tokenList[1]
                 t       =  tokenList[0]            
                 typ     =  tokenList[1]
-                tweet   =  tweets[i]
+                #tweet   =  tweets[i]
                 if typ in NOUN:                    
                     #print t, typ, "|",tweet, i
                     nouns.append(t)                            
-            i+=1            
+            i+=1                                    
         mycounter = collections.Counter();
         mycounter.update(nouns)
         print mycounter.most_common(20);
@@ -262,8 +277,9 @@ if __name__ == '__main__':
     #initialStatesRead()
     #twitterCheck('UCLA', None)
     #findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
-    followers = findFollowersOf('lakers')
-    print followers
+    if 0:
+        followers = findFollowersOf('lakers')
+        print followers
     counter1 = refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')   
     counter2 = findLastTweetsOfFollower("AngryLakersFan")
     
