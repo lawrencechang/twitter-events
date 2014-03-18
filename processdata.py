@@ -3,9 +3,11 @@ import collections
 from twython import Twython
 from sets import Set
 from twython.exceptions import TwythonError
+from CMUTweetTagger import runtagger_parse
 
-APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
-APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
+
+#APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
+#APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
 OAUTH_TOKEN = ''
 OAUTH_TOKEN_SECRET = ''
 
@@ -34,6 +36,7 @@ def wordCounter(inputFile):
     # Print counter results
     return mycounter.most_common(10);
 
+
 from os import listdir
 from os.path import isfile, join
 def processUsers(mypath):
@@ -46,6 +49,7 @@ def processUsers(mypath):
         print f, result
         print>> outFile, f,result
     outFile.close()        
+
 
 def saveTweets(listOfTweets,outputFile):
     if outputFile:    
@@ -61,6 +65,7 @@ def saveTweets(listOfTweets,outputFile):
             print username,tweet
             USERS.add(username)
 
+
 def saveParsedTweets(nounList,outputFile):
     if outputFile:    
         outFile = open(outputFile, 'w')
@@ -68,8 +73,7 @@ def saveParsedTweets(nounList,outputFile):
             if outputFile:
                 print>> outFile, tweet['text']    
         outFile.close()
-    
-    
+        
 
 def twitterExtractUserTimeline(name,path):    
     try:
@@ -77,16 +81,63 @@ def twitterExtractUserTimeline(name,path):
         user_timeline = twitter.get_user_timeline(screen_name=name, count=200 )
         outputFilePath = path + name                    
         saveTweets(user_timeline,outputFilePath)
-#        for tweet in user_timeline:
-#            print tweet["text"]
     except TwythonError as e:
-        print e
-
+        print e  
 
 def findUserTweets(keyword):    
     twitterCheck( keyword,None )
     for u in USERS:
         twitterExtractUserTimeline(u,USER_DATASET_PATH)
+        
+        
+def usersByKeywordGet(query):
+    twitter = Twython(APP_KEY, APP_SECRET)
+    popularTweets =  twitter.search(q=query,  count=30, lang = 'en', include_entities= False)
+    listOfTweets  =  popularTweets["statuses"]
+    res = []    
+    for tweet in listOfTweets:
+        username = tweet['user']['screen_name']
+        tweet    = tweet['text']                        
+        res.append(username)
+    return res        
+
+        
+def findAllUserTweets(keyword):
+    twitter = Twython(APP_KEY, APP_SECRET)    
+    users   = usersByKeywordGet(keyword)
+    tweetList = []
+    for u in users:        
+        user_timeline = twitter.get_user_timeline(screen_name=u, count=15 )                        
+        for tweet in user_timeline:
+            tweetList.append( tweet['text'] )
+    return tweetList
+
+
+def findRelatedWordsForTeam(keywords):
+    try:
+        allTweets = []
+        for w in keywords:            
+            tweets = findAllUserTweets(w)            
+            allTweets = list(set(tweets + allTweets ))            
+        nouns  = []    
+        tokenizedTweets = runtagger_parse(tweets)            
+        for tupl in tokenizedTweets:
+            for token in tupl:
+                tokenList = list(token)                                
+                t       =  tokenList[0]            
+                typ     =  tokenList[1]
+                if typ in NOUN:
+                    nouns.append(t)
+        mycounter = collections.Counter();
+        mycounter.update(nouns)
+        print mycounter.most_common(20);
+        return mycounter
+    except TwythonError as e:
+        print e
+    
+    
+    
+
 
 
 def findTweetsByTime( query, time, outputFile ):
@@ -130,7 +181,7 @@ def extractKeywords(keywordsFile,savedTweetsFile):
 def loadKeywords(keywordsFile):
     #file_str = open( '/home/tomerwei/Downloads/keywords.txt').read()
     file_str = open( keywordsFile ).read()
-    seq = file_str.split('\n')    
+    seq      = file_str.split('\n')    
     i = 0 
     print 'There are ',len(seq), ' tweets'
     for line in seq:
@@ -163,18 +214,17 @@ def nounFinder(infile):
         spamreader = csv.reader(csvfile, delimiter='\n')
         TWEET_ID_COUNTER = 0        
         for r in spamreader:            
-            row = r[0].split('\t')
+            row         = r[0].split('\t')
             tokens      = row[0].split(' ')            
             tokensTypes = row[1].split(' ')
             tweet       = row[2]            
             i = 0
-
             for typ in tokensTypes:                            
                 if typ in NOUN:                    
                     tweet_nouns.append(tokens[i])                
                 i+=1                                                                                
             TWEET_ID_COUNTER+=1
-    return tweet_nouns                 
+    return tweet_nouns
 
 
 def refCountGet(mypath):
@@ -210,7 +260,9 @@ def findFollowersOf(user):
     return sorted(followerList,key=lambda followers:followers[1],reverse=True);
             
 
-from CMUTweetTagger import runtagger_parse
+
+
+
 def findLastTweetsOfFollower(followerName):
     twitter = Twython(APP_KEY, APP_SECRET)    
     nouns  = []
@@ -277,10 +329,29 @@ if __name__ == '__main__':
     #initialStatesRead()
     #twitterCheck('UCLA', None)
     #findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
+
+    teamA = findRelatedWordsForTeam(['lakers','LAL','Los Angeles Lakers'])    
+    teamB = findRelatedWordsForTeam(['celtics','Boston Celtics'])
+    teamC = findRelatedWordsForTeam(['clippers','LAC','Los Angeles Clippers'])
+    
+    print counter_cosine_similarity(teamB, teamA)
+    print counter_cosine_similarity(teamA, teamC)
+    print counter_cosine_similarity(teamC, teamB)
+    
+
+    
+    
     if 0:
+        counter1 = refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')
+        
+        if 0:
+            followers = findFollowersOf('lakers')
+            print followers           
+            counter2 = findLastTweetsOfFollower("AngryLakersFan")
+            
         followers = findFollowersOf('lakers')
         print followers
-    counter1 = refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')   
-    counter2 = findLastTweetsOfFollower("AngryLakersFan")
-    
-    print counter_cosine_similarity(counter1, counter2)
+        
+        for f in followers:           
+            counter2 = findLastTweetsOfFollower(f[0])
+            print counter_cosine_similarity(counter1, counter2)
