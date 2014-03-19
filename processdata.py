@@ -5,7 +5,8 @@ from sets import Set
 from twython.exceptions import TwythonError
 from CMUTweetTagger import runtagger_parse
 
-
+APP_KEY = 'deQC0dqQP46N0XT5hDHHsQ'
+APP_SECRET = 'ucG01AX12ydT3eMYn7hNsBLwUj623DIgMs5wE5tVE'
 #APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
 #APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
 OAUTH_TOKEN = ''
@@ -113,14 +114,14 @@ def findAllUserTweets(keyword):
     return tweetList
 
 
-def findRelatedWordsForTeam(keywords):
+def findAllRelatedWordsForKeywords(keywords):
     try:
         allTweets = []
         for w in keywords:            
             tweets = findAllUserTweets(w)            
             allTweets = list(set(tweets + allTweets ))            
         nouns  = []    
-        tokenizedTweets = runtagger_parse(tweets)            
+        tokenizedTweets = runtagger_parse(allTweets)            
         for tupl in tokenizedTweets:
             for token in tupl:
                 tokenList = list(token)                                
@@ -128,16 +129,21 @@ def findRelatedWordsForTeam(keywords):
                 typ     =  tokenList[1]
                 if typ in NOUN:
                     nouns.append(t)
-        mycounter = collections.Counter();
-        mycounter.update(nouns)
-        print mycounter.most_common(20);
-        return mycounter
+        return nouns
     except TwythonError as e:
         print e
-    
-    
-    
+                    
 
+def counterForWordsGet(nouns):
+    mycounter = collections.Counter();
+    mycounter.update(nouns)
+    print mycounter.most_common(20);
+    return mycounter
+    
+        
+def findRelatedWordsForTeam(keywords):
+    nouns = findAllRelatedWordsForKeywords(keywords)    
+    return counterForWordsGet(nouns)
 
 
 def findTweetsByTime( query, time, outputFile ):
@@ -318,6 +324,62 @@ def counter_cosine_similarity(c1, c2):
     magB = math.sqrt(sum(c2.get(k, 0)**2 for k in terms))
     return dotprod / (magA * magB)
 
+def experiment5():
+    teamA = findRelatedWordsForTeam(['lakers','LAL','Los Angeles Lakers'])    
+    teamB = findRelatedWordsForTeam(['celtics','Boston Celtics'])
+    teamC = findRelatedWordsForTeam(['clippers','LAC','Los Angeles Clippers'])
+        
+    print counter_cosine_similarity(teamB, teamA)
+    print counter_cosine_similarity(teamA, teamC)
+    print counter_cosine_similarity(teamC, teamB)
+    
+    
+def findWordsNotInIntersection(inputList,comparedToList):
+    res = [val for val in inputList if val not in comparedToList]
+    return res        
+
+        
+def experiment3():    
+    initTeamA = findAllRelatedWordsForKeywords(['lakers','LAL','Los Angeles Lakers'])    
+    initTeamB = findAllRelatedWordsForKeywords(['celtics','BOS','Boston Celtics'])
+    filteredTeamA = findWordsNotInIntersection(initTeamA,initTeamB)
+    filteredTeamB = findWordsNotInIntersection(initTeamB,initTeamA)        
+    
+    teamA  = counterForWordsGet(filteredTeamA)
+    teamB  = counterForWordsGet(filteredTeamB)
+    teamC  = findRelatedWordsForTeam(['clippers','LAC','Los Angeles Clippers'])    
+    entity = findRelatedWordsForTeam(['Kobe Bryant'])    
+    
+    print counter_cosine_similarity(entity, teamA)
+    print counter_cosine_similarity(entity, teamB)    
+    print counter_cosine_similarity(entity, teamC)    
+
+    print counter_cosine_similarity(teamA, teamB)
+    print counter_cosine_similarity(teamB, teamC)    
+    print counter_cosine_similarity(teamA, teamC)    
+
+    
+
+def experiment4A():
+    entity = findRelatedWordsForTeam(['Kobe Bryant'])
+    teamA  = findRelatedWordsForTeam(['lakers'])    
+    teamB  = findRelatedWordsForTeam(['san antonio spurs'])
+    teamC  = findRelatedWordsForTeam(['miami hit'])
+    print counter_cosine_similarity(entity, teamA)
+    print counter_cosine_similarity(entity, teamB)    
+    print counter_cosine_similarity(entity, teamC)
+
+
+def experiment4B():
+    entity = findRelatedWordsForTeam(['Kobe Bryant'])
+    teamA  = findRelatedWordsForTeam(['lakers','LAL','Los Angeles Lakers'])    
+    teamB  = findRelatedWordsForTeam(['celtics','BOS','Boston Celtics'])
+    teamC  = findRelatedWordsForTeam(['clippers','LAC','Los Angeles Clippers'])
+    print counter_cosine_similarity(entity, teamA)
+    print counter_cosine_similarity(entity, teamB)    
+    print counter_cosine_similarity(entity, teamC)
+
+
 
 if __name__ == '__main__':
     #print 'hello world'
@@ -329,17 +391,15 @@ if __name__ == '__main__':
     #initialStatesRead()
     #twitterCheck('UCLA', None)
     #findTweetsByTime('Lakers', '2014-03-03',None) #YYYY-MM-DD
-
-    teamA = findRelatedWordsForTeam(['lakers','LAL','Los Angeles Lakers'])    
-    teamB = findRelatedWordsForTeam(['celtics','Boston Celtics'])
-    teamC = findRelatedWordsForTeam(['clippers','LAC','Los Angeles Clippers'])
     
-    print counter_cosine_similarity(teamB, teamA)
-    print counter_cosine_similarity(teamA, teamC)
-    print counter_cosine_similarity(teamC, teamB)
     
-
+    experiment3()    
     
+    
+    if 0:
+        experiment4A()
+        experiment4B() 
+        experiment5()
     
     if 0:
         counter1 = refCountGet('/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tokenized/')
