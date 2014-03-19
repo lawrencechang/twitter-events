@@ -5,10 +5,8 @@ from sets import Set
 from twython.exceptions import TwythonError
 from CMUTweetTagger import runtagger_parse
 
-APP_KEY = 'deQC0dqQP46N0XT5hDHHsQ'
-APP_SECRET = 'ucG01AX12ydT3eMYn7hNsBLwUj623DIgMs5wE5tVE'
-#APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
-#APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
+APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
+APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
 OAUTH_TOKEN = ''
 OAUTH_TOKEN_SECRET = ''
 
@@ -17,9 +15,12 @@ NUMERAL = ['$']
 NOUN    = ['^','N','@','#','~']
 
 USERS = Set([])
-USER_DATASET_PATH = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/data/'
-TWEETNOUNS = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tweetNouns/'
-FOLLOWER_PATH = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/follower/'
+USER_DATASET_PATH = USER_DATASET_PATH_LAW;
+TWEETNOUNS = TWEETNOUNS_LAW;
+FOLLOWER_PATH = FOLLOWER_PATH_LAW;
+#USER_DATASET_PATH = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/data/'
+#TWEETNOUNS = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/tweetNouns/'
+#FOLLOWER_PATH = '/home/tomerwei/UCLA_assignments/CS263A/twitter-events/follower/'
 
 #-----------------------------------------------
 # Returns the 1o most frequently appearing words 
@@ -51,10 +52,10 @@ def processUsers(mypath):
         print>> outFile, f,result
     outFile.close()        
 
-
+import codecs
 def saveTweets(listOfTweets,outputFile):
     if outputFile:    
-        outFile = open(outputFile, 'w')
+        outFile = codecs.open(outputFile, 'w','utf-8')
         for tweet in listOfTweets:
             if outputFile:
                 print>> outFile, tweet['text']    
