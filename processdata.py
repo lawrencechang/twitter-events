@@ -6,10 +6,10 @@ from twython.exceptions import TwythonError
 from CMUTweetTagger import runtagger_parse
 
 from variables_lawrence import *;
-APP_KEY = APP_KEY_LAW;
-APP_SECRET = APP_SECRET_LAW;
-#APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
-#APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
+#APP_KEY = APP_KEY_LAW;
+#APP_SECRET = APP_SECRET_LAW;
+APP_KEY = 'eiKbuTUzZ7G4cN1NrAcU6Q'
+APP_SECRET = '06lT99eKgIke0ZHczBA2wiXawvNwEKBSGUm5wiELY'
 OAUTH_TOKEN = ''
 OAUTH_TOKEN_SECRET = ''
 
@@ -80,7 +80,7 @@ def saveParsedTweets(nounList,outputFile):
         outFile.close()
         
 
-def twitterExtractUserTimeline(name,path):    
+def twitterExtractUserTimeline(name,path=USER_DATASET_PATH):    
     try:
         twitter = Twython(APP_KEY, APP_SECRET)
         user_timeline = twitter.get_user_timeline(screen_name=name, count=200 )
@@ -250,10 +250,10 @@ def findFollowersOf(user):
     twitter = Twython(APP_KEY, APP_SECRET);
     followerList = [];    
     # Proper cursoring
-    print 'Proper cursoring'
+    #print 'Proper cursoring'
     mycursor = -1;
     for i in range(0,5):
-        print 'Cursor page '+str(i);
+        #print 'Cursor page '+str(i);
         f = twitter.get_followers_list(
             screen_name=user,cursor=mycursor,count=20,skip_status='true',include_user_entities='true');
         
@@ -261,7 +261,7 @@ def findFollowersOf(user):
             followerList.append((follower['screen_name'],follower['followers_count']));
         mycursor = f['next_cursor'];
 
-    print 'Got list, sorting'
+    #print 'Got list, sorting'
     return sorted(followerList,key=lambda followers:followers[1],reverse=True);
             
 
